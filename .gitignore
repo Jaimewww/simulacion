@@ -1,0 +1,17 @@
+# OS / editor
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+
+# Java build output
+build/
+
+# Local agent runtime state
+.atl/

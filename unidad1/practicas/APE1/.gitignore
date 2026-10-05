@@ -1,0 +1,10 @@
+# Python
+venv/
+__pycache__/
+*.py[cod]
+
+# Java build output
+build/
+
+# Local agent runtime state
+.atl/
