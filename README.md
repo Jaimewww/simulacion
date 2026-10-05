@@ -16,7 +16,7 @@ Modelo del índice atmosférico `I = a·H + b·N + c·Tf`, con `H` humedad norma
 - Modelo original: `I = 0.50H + 0.30N + 0.20Tf`
 - Modelo ajustado: `I = 0.40H + 0.35N + 0.25Tf` (coeficientes aleatorios que suman 1)
 
-Se implementa en **Python** y **Java**, ambos generan la tabla horaria y las gráficas
+Implementado en **Python** con matplotlib: genera la tabla horaria y las gráficas
 en `unidad1/practicas/APE1/dist/`.
 
 Instrucciones de ejecución en

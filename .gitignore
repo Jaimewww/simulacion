@@ -10,8 +10,5 @@ __pycache__/
 venv/
 .venv/
 
-# Java build output
-build/
-
 # Local agent runtime state
 .atl/
