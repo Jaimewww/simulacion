@@ -9,6 +9,9 @@ __pycache__/
 *.py[cod]
 venv/
 .venv/
+.ruff_cache/
+.pytest_cache/
 
 # Local agent runtime state
 .atl/
+odd/
