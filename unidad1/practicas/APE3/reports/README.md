@@ -5,7 +5,7 @@ Entregables **redactados** de la APE 003.
 | Archivo | Qué es |
 | --- | --- |
 | `ape3_mm1.tex` | Fuente LaTeX del informe (plantilla institucional llenada) |
-| `ape3_mm1.pdf` | PDF compilado (9 páginas) |
+| `ape3_mm1.pdf` | PDF compilado (14 páginas) |
 | `referencias.bib` | Bibliografía (teoría de colas, simulación, SimPy, guía) |
 | `assets/reporte_tecnico_overleaf_logo.png` | Logo institucional del encabezado |
 | `figures/` | Figuras insertadas en el informe |
@@ -45,14 +45,3 @@ tectonic ape3_mm1.tex
 > entorno `alltt` y no `verbatim`, porque la fuente monoespaciada no tiene los glifos
 > griegos. Por eso dentro del bloque las letras griegas van entre `\(...\)` y no entre
 > `$...$`.
-
-## Secciones que el equipo todavía debe completar
-
-Están marcadas en rojo con `[PENDIENTE: ...]` en el PDF:
-
-- [ ] **Análisis de Resultados** (§8): el análisis escrito de las gráficas y de la
-      comparación teoría--simulación.
-- [ ] **Preguntas de Control** (§9): las respuestas a las 10 preguntas de la guía. Las
-      preguntas ya están listadas; falta el texto de cada respuesta.
-- [ ] **Conclusiones** (§10): una por objetivo, atadas a los resultados.
-- [ ] **Demostración** (§11): el enlace al video de demostración.
