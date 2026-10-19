@@ -533,7 +533,7 @@ Yo interpreto esa resta como el ``margen libre'' del servidor. Mientras es grand
 
 \textbf{Teoría vs simulación (Figura~\ref{fig:comparacion}).} En el escenario 1 las barras azul (teórica) y naranja (simulada) son casi idénticas. En el escenario 2 la naranja queda un poco más alta y en el escenario 3 queda más baja que la azul.
 
-\subsection{¿Por qué no coinciden exactamente?}
+\subsection{\textquestiondown{}Por qué no coinciden exactamente?}
 
 \begin{table}[h!]
 \centering
@@ -579,7 +579,7 @@ Como el escenario 2 queda por encima de la teoría y el 3 por debajo, el azar pa
 
 En los seis casos de la Tabla~\ref{tab:intervalos}, el valor teórico cae dentro del intervalo de confianza al 95\,\%. Dicho de forma simple: con lo que simulamos, \textbf{no hay evidencia de que la simulación esté mal}, porque las diferencias son compatibles con el azar (pero eso no significa que sea exacta). En el escenario 3 los intervalos son anchos (por ejemplo, el de $W_q$ va de 7,37 a 9,78), así que parte de la razón por la que la teoría cabe es que el intervalo deja mucho margen; con más réplicas se estrecharía y la comparación sería más exigente.
 
-\subsection{¿Por qué hacer varias corridas?}
+\subsection{\textquestiondown{}Por qué hacer varias corridas?}
 
 Logré entender que el resultado cambia mucho de una corrida a otra. En el escenario 3 la desviación de $W_q$ entre réplicas es 1,68, cerca del 20\,\% de la media simulada (8,57). Una sola corrida podría salir bastante más alta o más baja que el valor real y llevarnos a una conclusión equivocada. En el escenario 1 la desviación entre réplicas es solo 0,058, cerca del 9\,\% de la media, y una corrida sola ya sería bastante confiable. Por eso hicimos 10 réplicas por escenario: el promedio de varias corridas es mucho más seguro que una sola.
 
@@ -681,12 +681,13 @@ simplificar su redacción. Si algo no puedes verificar, dímelo.}
 \textbf{Herramientas utilizadas.}
 
 \begin{itemize}
-    \item \textbf{Claude Sonnet 5.5} (Anthropic), mediante la aplicación web claude.ai.
+    \item \textbf{GLM-5.3-flash}, mediante su aplicación web.
+    \item \textbf{DeepSeek V4.1 flash}, mediante su aplicación web.
     \item \textbf{NotebookLM} (Google), con el cuaderno de documentos compartido por el
     docente.
 \end{itemize}
 
-\textbf{Apoyo recibido de Claude.}
+\textbf{Apoyo recibido de los modelos.}
 
 \begin{itemize}
     \item \textbf{Redacción:} mejora de la claridad de los textos, simplificación de las
@@ -705,9 +706,9 @@ simplificar su redacción. Si algo no puedes verificar, dímelo.}
 
 \begin{itemize}
     \item La información de las \textbf{preguntas de control} se obtuvo del cuaderno de
-    NotebookLM compartido por el docente, a partir de sus documentos cargados. Claude
-    solo ayudó a reformular esas respuestas con un lenguaje más sencillo y a pasarlas
-    a \LaTeX{}.
+    NotebookLM compartido por el docente, a partir de sus documentos cargados. Los
+    modelos solo ayudaron a reformular esas respuestas con un lenguaje más sencillo y a
+    pasarlas a \LaTeX{}.
     \item El archivo de referencias (\texttt{referencias.bib}) se generó a partir de
     ese mismo cuaderno.
     \item Los resultados numéricos, las tablas y las gráficas provienen de la ejecución
