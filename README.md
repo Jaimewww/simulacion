@@ -8,6 +8,7 @@ Trabajos prácticos de la asignatura **Simulación** (5.º ciclo, FEIRNNR — Ca
 | --- | --- |
 | `unidad1/practicas/APE1/` | APE 001 — Construcción y simulación computacional de un modelo matemático |
 | `unidad1/practicas/APE2/APE2_SIMULACION/` | APE 002 — Comparación de modelos determinísticos, estocásticos, discretos y continuos |
+| `unidad1/practicas/APE3/` | APE 003 — Simulación de un sistema de líneas de espera M/M/1 mediante SimPy |
 
 ## APE 001 — Modelo de probabilidad de lluvia
 
@@ -42,3 +43,19 @@ que el mecanismo subyacente de la serie es multiplicativo por período.
 Instrucciones, resultados y declaración de uso de IA en
 [`unidad1/practicas/APE2/APE2_SIMULACION/README.md`](unidad1/practicas/APE2/APE2_SIMULACION/README.md).
 El reporte técnico está en `unidad1/practicas/APE2/APE2_SIMULACION/reporte_tecnico_overleaf.tex`.
+
+## APE 003 — Sistema de líneas de espera M/M/1
+
+Simulación de una fila con **un solo servidor** usando **SimPy**: llegadas de Poisson
+(λ), tiempos de servicio exponenciales (μ) y atención FIFO, sobre los tres escenarios
+de la guía (ρ = 0,667 / 0,833 / 0,967).
+
+Comparación teoría vs simulación con 10 réplicas por escenario (30 corridas
+reproducibles): en los tres escenarios el valor teórico de la espera Wq cae dentro del
+intervalo de confianza al 95 % de lo simulado, y la espera y la cola crecen de forma
+acelerada al acercarse λ a μ (Wq simulado: 0,67 → 1,81 → 8,57).
+
+Instrucciones de ejecución en
+[`unidad1/practicas/APE3/README.md`](unidad1/practicas/APE3/README.md).
+El reporte técnico (LaTeX + PDF, con análisis, preguntas de control, conclusiones y
+declaración de uso de IA) está en `unidad1/practicas/APE3/reports/`.
