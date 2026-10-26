@@ -1,0 +1,379 @@
+<?xml version="1.0" encoding="utf-8"?>
+<model version="NetLogo 7.0.4" snapToGrid="true">
+  <code><![CDATA[extensions [csv]
+
+globals [
+  poblacion infectados-iniciales beta gamma tiempo-maximo semilla
+  datos-java datos-netlogo segundos-calculo
+]
+
+turtles-own [estado siguiente-estado]
+
+to setup
+  clear-all
+  set poblacion 100
+  set infectados-iniciales 5
+  set beta 0.30
+  set gamma 0.10
+  set tiempo-maximo 100
+  set semilla 42
+  if file-exists? "parametros_java.csv" [cargar-parametros-java]
+  set datos-java []
+  set datos-netlogo []
+  set segundos-calculo 0
+  random-seed semilla
+  ask patches [set pcolor white]
+
+  ; La distribucion y el movimiento son visuales, no contactos por cercania.
+  with-local-randomness [
+    create-turtles poblacion [
+      setxy random-xcor random-ycor
+      set shape "person"
+      set size 1.4
+      set estado "S"
+      if who < infectados-iniciales [set estado "I"]
+      if who = 0 and infectados-iniciales > 0 [set label "P0" set label-color black set size 1.8]
+      pintar
+    ]
+  ]
+  reset-ticks
+  registrar-netlogo
+  if file-exists? "resultados_java.csv" [cargar-java]
+end
+
+to actualizar-desde-java
+  if not file-exists? "parametros_java.csv" [
+    user-message "Falta parametros_java.csv. Primero compila y ejecuta Java desde la raíz del proyecto."
+    stop
+  ]
+  if not file-exists? "resultados_java.csv" [
+    user-message "Falta resultados_java.csv. Primero compila y ejecuta Java desde la raíz del proyecto."
+    stop
+  ]
+  setup
+  user-message (word "Parámetros Java sincronizados. Gamma = " gamma
+    ", semilla = " semilla ". Se cargaron " length datos-java " filas del CSV.")
+end
+
+to cargar-parametros-java
+  let filas csv:from-file "parametros_java.csv"
+  if length filas != 2 [error "parametros_java.csv debe tener encabezado y una fila de valores."]
+  if first filas != ["poblacion" "infectados_iniciales" "beta" "gamma" "tiempo_maximo" "semilla"] [
+    error "Encabezado inesperado en parametros_java.csv."
+  ]
+  let valores item 1 filas
+  if length valores != 6 [error "Se esperaban seis parámetros de Java."]
+  foreach valores [valor -> if not is-number? valor [error "Los parámetros Java deben ser números."]]
+  if item 0 valores <= 0 or item 0 valores != floor item 0 valores [error "La población debe ser un entero positivo."]
+  if item 1 valores < 0 or item 1 valores > item 0 valores or item 1 valores != floor item 1 valores [
+    error "Los infectados iniciales deben estar entre 0 y la población."
+  ]
+  if item 2 valores < 0 or item 2 valores > 1 [error "Beta debe estar entre 0 y 1."]
+  if item 3 valores < 0 or item 3 valores > 1 [error "Gamma debe estar entre 0 y 1."]
+  if item 4 valores < 0 or item 4 valores != floor item 4 valores [error "El tiempo máximo debe ser un entero no negativo."]
+  if item 5 valores < -2147483648 or item 5 valores > 2147483647 or item 5 valores != floor item 5 valores [
+    error "La semilla debe ser un entero entre -2147483648 y 2147483647."
+  ]
+  set poblacion item 0 valores
+  set infectados-iniciales item 1 valores
+  set beta item 2 valores
+  set gamma item 3 valores
+  set tiempo-maximo item 4 valores
+  set semilla item 5 valores
+end
+
+to go
+  if ticks >= tiempo-maximo [stop]
+  reset-timer
+  avanzar-estados
+  set segundos-calculo segundos-calculo + timer
+  with-local-randomness [
+    ask turtles [rt (random 61 - 30) fd 0.35]
+  ]
+  tick
+  registrar-netlogo
+  display
+  ; Esta pausa no cambia el paso del modelo y no se incluye en el tiempo de calculo.
+  if PAUSA > 0 [wait PAUSA]
+end
+
+to avanzar-estados
+  ask turtles [set siguiente-estado estado]
+  ; Orden estable y estados anteriores: los nuevos infectados esperan al proximo paso.
+  foreach sort turtles with [estado = "I"] [persona ->
+    ask persona [
+      let contacto one-of other turtles
+      if contacto != nobody [
+        if [estado] of contacto = "S" [
+          if random-float 1 < beta [
+            ask contacto [set siguiente-estado "I"]
+          ]
+        ]
+      ]
+      if random-float 1 < gamma [set siguiente-estado "R"]
+    ]
+  ]
+  ask turtles [set estado siguiente-estado pintar]
+end
+
+to pintar
+  if estado = "S" [set color blue]
+  if estado = "I" [set color red]
+  if estado = "R" [set color green - 1]
+end
+
+to registrar-netlogo
+  let fila (list ticks (count turtles with [estado = "S"])
+    (count turtles with [estado = "I"]) (count turtles with [estado = "R"]))
+  set datos-netlogo lput fila datos-netlogo
+  dibujar-evolucion "Evolucion NetLogo" fila
+  dibujar-comparaciones "NetLogo" fila
+end
+
+to cargar-java
+  if not file-exists? "resultados_java.csv" [
+    user-message "Falta resultados_java.csv. Ejecuta Java desde la raiz del proyecto."
+    stop
+  ]
+  ; Se valida antes de reemplazar los resultados ya cargados.
+  let filas csv:from-file "resultados_java.csv"
+  if empty? filas [error "El CSV esta vacio."]
+  if first filas != ["tiempo" "susceptibles" "infectados" "recuperados"] [
+    error "El encabezado debe ser: tiempo,susceptibles,infectados,recuperados"
+  ]
+  let nuevos but-first filas
+  if length nuevos != tiempo-maximo + 1 [error "La cantidad de filas no coincide con el tiempo máximo exportado por Java."]
+  let tiempo-esperado 0
+  foreach nuevos [fila ->
+    if length fila != 4 [error "Cada fila debe contener tiempo, S, I y R."]
+    foreach fila [valor ->
+      if not is-number? valor [error "El CSV debe contener numeros enteros."]
+      if valor < 0 or valor != floor valor [error "Hay valores negativos o no enteros."]
+    ]
+    if item 0 fila != tiempo-esperado [error "Los tiempos deben ser consecutivos desde 0."]
+    if sum but-first fila != poblacion [error "En cada fila debe cumplirse S + I + R = poblacion."]
+    set tiempo-esperado tiempo-esperado + 1
+  ]
+  if first nuevos != (list 0 (poblacion - infectados-iniciales) infectados-iniciales 0) [
+    error "El estado inicial del CSV no coincide con los parámetros Java."
+  ]
+  set datos-java nuevos
+  set-current-plot "Evolucion Java"
+  clear-plot
+  foreach ["Comparacion S" "Comparacion I" "Comparacion R"] [nombre ->
+    set-current-plot nombre
+    clear-plot
+  ]
+  foreach datos-java [fila ->
+    dibujar-evolucion "Evolucion Java" fila
+    dibujar-comparaciones "Java" fila
+  ]
+  foreach datos-netlogo [fila -> dibujar-comparaciones "NetLogo" fila]
+end
+
+to dibujar-evolucion [nombre fila]
+  set-current-plot nombre
+  set-current-plot-pen "S"
+  plotxy (item 0 fila) (item 1 fila)
+  set-current-plot-pen "I"
+  plotxy (item 0 fila) (item 2 fila)
+  set-current-plot-pen "R"
+  plotxy (item 0 fila) (item 3 fila)
+end
+
+to dibujar-comparaciones [origen fila]
+  let columna 1
+  foreach ["Comparacion S" "Comparacion I" "Comparacion R"] [nombre ->
+    set-current-plot nombre
+    set-current-plot-pen origen
+    plotxy (item 0 fila) (item columna fila)
+    set columna columna + 1
+  ]
+end
+]]></code>
+  <widgets>
+    <view x="10" wrappingAllowedX="true" y="110" frameRate="30.0" minPycor="-17" height="250" showTickCounter="true" patchSize="7.0" fontSize="11" wrappingAllowedY="true" width="250" tickCounterLabel="Tiempo" maxPycor="17" updateMode="1" maxPxcor="17" minPxcor="-17"></view>
+    <button x="10" y="10" height="40" disableUntilTicks="false" forever="false" kind="Observer" width="75" display="setup">setup</button>
+    <button x="95" y="10" height="40" disableUntilTicks="true" forever="true" kind="Observer" width="70" display="go">go</button>
+    <button x="175" y="10" height="40" disableUntilTicks="false" forever="false" kind="Observer" width="130" display="ACTUALIZAR JAVA">actualizar-desde-java</button>
+    <slider x="315" step="0.05" y="5" max="0.5" width="150" display="PAUSA" height="55" min="0" direction="Horizontal" default="0.0" variable="PAUSA" units="s"></slider>
+    <monitor x="470" precision="0" y="5" height="60" fontSize="10" width="100" display="S (azul)">count turtles with [estado = "S"]</monitor>
+    <monitor x="565" precision="0" y="5" height="60" fontSize="10" width="100" display="I (rojo)">count turtles with [estado = "I"]</monitor>
+    <monitor x="660" precision="0" y="5" height="60" fontSize="10" width="100" display="R (verde)">count turtles with [estado = "R"]</monitor>
+    <monitor x="755" precision="4" y="5" height="60" fontSize="10" width="100" display="Cálculo (s)">segundos-calculo</monitor>
+    <monitor x="10" precision="2" y="65" height="60" fontSize="12" width="845" display="Parámetros sincronizados con Java">word "SIR | N = " poblacion " | I inicial = " infectados-iniciales " | beta = " beta " | gamma = " gamma " | " tiempo-maximo " pasos | semilla = " semilla</monitor>
+    <plot x="275" autoPlotX="true" yMax="100.0" autoPlotY="true" yAxis="Personas" y="110" xMin="0.0" height="250" legend="true" xMax="100.0" yMin="0.0" width="280" xAxis="Tiempo" display="Evolucion NetLogo">
+      <setup></setup>
+      <update></update>
+      <pen interval="1.0" mode="0" display="S" color="-13345367" legend="true">
+        <setup></setup>
+        <update></update>
+      </pen>
+      <pen interval="1.0" mode="0" display="I" color="-2674135" legend="true">
+        <setup></setup>
+        <update></update>
+      </pen>
+      <pen interval="1.0" mode="0" display="R" color="-10899396" legend="true">
+        <setup></setup>
+        <update></update>
+      </pen>
+    </plot>
+    <plot x="565" autoPlotX="true" yMax="100.0" autoPlotY="true" yAxis="Personas" y="110" xMin="0.0" height="250" legend="true" xMax="100.0" yMin="0.0" width="280" xAxis="Tiempo" display="Evolucion Java">
+      <setup></setup>
+      <update></update>
+      <pen interval="1.0" mode="0" display="S" color="-13345367" legend="true">
+        <setup></setup>
+        <update></update>
+      </pen>
+      <pen interval="1.0" mode="0" display="I" color="-2674135" legend="true">
+        <setup></setup>
+        <update></update>
+      </pen>
+      <pen interval="1.0" mode="0" display="R" color="-10899396" legend="true">
+        <setup></setup>
+        <update></update>
+      </pen>
+    </plot>
+    <plot x="10" autoPlotX="true" yMax="100.0" autoPlotY="true" yAxis="Personas" y="380" xMin="0.0" height="225" legend="true" xMax="100.0" yMin="0.0" width="270" xAxis="Tiempo" display="Comparacion S">
+      <setup></setup>
+      <update></update>
+      <pen interval="1.0" mode="0" display="Java" color="-16777216" legend="true">
+        <setup></setup>
+        <update></update>
+      </pen>
+      <pen interval="1.0" mode="0" display="NetLogo" color="-955883" legend="true">
+        <setup></setup>
+        <update></update>
+      </pen>
+    </plot>
+    <plot x="295" autoPlotX="true" yMax="100.0" autoPlotY="true" yAxis="Personas" y="380" xMin="0.0" height="225" legend="true" xMax="100.0" yMin="0.0" width="270" xAxis="Tiempo" display="Comparacion I">
+      <setup></setup>
+      <update></update>
+      <pen interval="1.0" mode="0" display="Java" color="-16777216" legend="true">
+        <setup></setup>
+        <update></update>
+      </pen>
+      <pen interval="1.0" mode="0" display="NetLogo" color="-955883" legend="true">
+        <setup></setup>
+        <update></update>
+      </pen>
+    </plot>
+    <plot x="580" autoPlotX="true" yMax="100.0" autoPlotY="true" yAxis="Personas" y="380" xMin="0.0" height="225" legend="true" xMax="100.0" yMin="0.0" width="270" xAxis="Tiempo" display="Comparacion R">
+      <setup></setup>
+      <update></update>
+      <pen interval="1.0" mode="0" display="Java" color="-16777216" legend="true">
+        <setup></setup>
+        <update></update>
+      </pen>
+      <pen interval="1.0" mode="0" display="NetLogo" color="-955883" legend="true">
+        <setup></setup>
+        <update></update>
+      </pen>
+    </plot>
+    <note x="10" y="615" backgroundDark="0" fontSize="11" width="845" markdown="false" height="30" textColorDark="-1" textColorLight="-16777216" backgroundLight="0">P0: paciente cero. Movimiento ilustrativo; un contacto aleatorio por infectado y paso. Java se importa del CSV.</note>
+  </widgets>
+  <info>## PRACTICA 04 - MODELO SIR
+
+Modelo de contagio por agentes. N = S + I + R = 100, con 95 susceptibles,
+5 infectados y 0 recuperados al inicio. La persona P0 es uno de los cinco
+infectados iniciales. I representa el total de infectados.
+
+## USO
+
+1. Ejecutar Java desde la raiz del proyecto para generar los CSV de resultados y parametros.
+2. Pulsar ACTUALIZAR JAVA: reinicia el escenario y carga ambos archivos.
+3. Pulsar go: boton continuo. Se detiene al alcanzar el paso 100.
+4. Ajustar PAUSA para observar el movimiento. El valor inicial es 0.00 s.
+
+## REGLAS
+
+Cada infectado elige otra persona al azar en cada paso. Si el contacto es
+susceptible, se infecta con probabilidad beta. Cada infectado inicial del paso
+se recupera con probabilidad gamma. Los cambios se aplican juntos. Los recuperados
+no vuelven a infectarse. El CSV define el tiempo inicial y final.
+
+La ficha permite contactos cercanos o seleccionados. Aqui se eligen contactos
+aleatorios en toda la poblacion, igual que en Java. Las posiciones y el movimiento
+son ilustrativos: no representan distancias de contagio. with-local-randomness
+separa el azar del movimiento del utilizado por las reglas SIR.
+
+## GRAFICAS Y CSV
+
+El archivo de resultados contiene tiempo,susceptibles,infectados,recuperados.
+El archivo de parametros sincroniza los valores usados por ambos programas.
+NetLogo importa los datos de Java; su propia curva se construye al avanzar go.
+Al terminar se pueden comparar ambas ejecuciones.
+
+Azul: susceptibles. Rojo: infectados. Verde: recuperados.
+En las comparaciones: Java en negro y NetLogo en naranja.
+
+## COMPARACION
+
+Se usan los mismos parametros y reglas, pero generadores aleatorios diferentes.
+La misma semilla no garantiza resultados identicos entre Java y NetLogo.
+El monitor de calculo suma solo las actualizaciones SIR; excluye animacion,
+graficas, espera y lectura de CSV. Son mediciones orientativas de una ejecucion.
+
+## ALCANCE
+
+Se implementan Java y NetLogo por indicacion del trabajo. La ficha completa
+incluye tambien Python/SimPy; esa implementacion y el informe no se incluyen.
+Ver README.md para instalacion, estructura y resultados comprobados.
+</info>
+  <turtleShapes>
+    <shape name="person" rotatable="false" editableColorIndex="0">
+      <circle x="110" y="5" marked="true" color="-7500403" diameter="80" filled="true"></circle>
+      <polygon color="-7500403" filled="true" marked="true">
+        <point x="105" y="90"></point>
+        <point x="195" y="90"></point>
+        <point x="210" y="180"></point>
+        <point x="180" y="180"></point>
+        <point x="180" y="295"></point>
+        <point x="150" y="295"></point>
+        <point x="150" y="200"></point>
+        <point x="145" y="200"></point>
+        <point x="145" y="295"></point>
+        <point x="115" y="295"></point>
+        <point x="115" y="180"></point>
+        <point x="90" y="180"></point>
+      </polygon>
+      <polygon color="-7500403" filled="true" marked="true">
+        <point x="105" y="95"></point>
+        <point x="120" y="120"></point>
+        <point x="65" y="210"></point>
+        <point x="40" y="195"></point>
+      </polygon>
+      <polygon color="-7500403" filled="true" marked="true">
+        <point x="190" y="95"></point>
+        <point x="175" y="120"></point>
+        <point x="230" y="210"></point>
+        <point x="255" y="195"></point>
+      </polygon>
+    </shape>
+  </turtleShapes>
+  <linkShapes>
+    <shape name="default" curviness="0.0">
+      <lines>
+        <line x="-0.2" visible="false">
+          <dash value="0.0"></dash>
+          <dash value="1.0"></dash>
+        </line>
+        <line x="0.0" visible="true">
+          <dash value="1.0"></dash>
+          <dash value="0.0"></dash>
+        </line>
+        <line x="0.2" visible="false">
+          <dash value="0.0"></dash>
+          <dash value="1.0"></dash>
+        </line>
+      </lines>
+      <indicator>
+        <shape name="link direction" rotatable="true" editableColorIndex="0">
+          <line endX="90" startY="150" marked="true" color="-1920102913" endY="180" startX="150"></line>
+          <line endX="210" startY="150" marked="true" color="-1920102913" endY="180" startX="150"></line>
+        </shape>
+      </indicator>
+    </shape>
+  </linkShapes>
+  <previewCommands>setup set PAUSA 0 repeat 30 [go]</previewCommands>
+</model>

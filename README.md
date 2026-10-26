@@ -9,6 +9,7 @@ Trabajos prácticos de la asignatura **Simulación** (5.º ciclo, FEIRNNR — Ca
 | `unidad1/practicas/APE1/` | APE 001 — Construcción y simulación computacional de un modelo matemático |
 | `unidad1/practicas/APE2/APE2_SIMULACION/` | APE 002 — Comparación de modelos determinísticos, estocásticos, discretos y continuos |
 | `unidad1/practicas/APE3/` | APE 003 — Simulación de un sistema de líneas de espera M/M/1 mediante SimPy |
+| `unidad1/practicas/APE4/` | APE 004 — Modelo SIR en Java y NetLogo |
 
 ## APE 001 — Modelo de probabilidad de lluvia
 
@@ -59,3 +60,9 @@ Instrucciones de ejecución en
 [`unidad1/practicas/APE3/README.md`](unidad1/practicas/APE3/README.md).
 El reporte técnico (LaTeX + PDF, con análisis, preguntas de control, conclusiones y
 declaración de uso de IA) está en `unidad1/practicas/APE3/reports/`.
+
+## APE 004 — Modelo SIR en Java y NetLogo
+
+Simulación por agentes de una población de 100 personas, con exportación CSV desde Java y comparación visual en NetLogo.
+
+Código e instrucciones en [`unidad1/practicas/APE4/README.md`](unidad1/practicas/APE4/README.md). Esta práctica publica solo los fuentes y el README; el informe y los archivos generados se mantienen fuera del repositorio.
