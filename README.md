@@ -10,6 +10,8 @@ Trabajos prácticos de la asignatura **Simulación** (5.º ciclo, FEIRNNR — Ca
 | `unidad1/practicas/APE2/APE2_SIMULACION/` | APE 002 — Comparación de modelos determinísticos, estocásticos, discretos y continuos |
 | `unidad1/practicas/APE3/` | APE 003 — Simulación de un sistema de líneas de espera M/M/1 mediante SimPy |
 | `unidad1/practicas/APE4/` | APE 004 — Modelo SIR en Java y NetLogo |
+| `unidad2/practicas/APE5/` | APE 005 — Implementación y análisis del Generador Congruencial Lineal en Python y Java |
+| `unidad2/practicas/APE6/` | APE 006 — Validación estadística de números pseudoaleatorios mediante Chi-cuadrado y Kolmogorov-Smirnov |
 
 ## APE 001 — Modelo de probabilidad de lluvia
 
@@ -66,3 +68,22 @@ declaración de uso de IA) está en `unidad1/practicas/APE3/reports/`.
 Simulación por agentes de una población de 100 personas, con exportación CSV desde Java y comparación visual en NetLogo.
 
 Código e instrucciones en [`unidad1/practicas/APE4/README.md`](unidad1/practicas/APE4/README.md). Esta práctica publica solo los fuentes y el README; el informe y los archivos generados se mantienen fuera del repositorio.
+## Unidad 2 — APE 005 y APE 006, generación y validación de números pseudoaleatorios
+
+**APE 005** (`unidad2/practicas/APE5/`): LCG con `a = 1664525`, `c = 1013904223`,
+`m = 2^32` implementado en Python y Java (mismo algoritmo, aritmética modular de
+32 bits sin `BigInteger`); 10 000 valores por semilla (12345 y 54321). Las secuencias
+de ambos lenguajes son idénticas valor a valor (0 diferencias en 10 000), y los
+parámetros garantizan el período completo `2^32` por la hipótesis de Hull–Dobell.
+
+**APE 006** (`unidad2/practicas/APE6/`): validación estadística de tres configuraciones
+clásicas de LCG (`glibc`, `java_random`, `zx81_bad`) con `n = 10 000` y `α = 0,05`,
+pruebas de Chi-cuadrado y Kolmogorov-Smirnov implementadas desde cero; las tres pasan
+ambas pruebas, y la paridad bit a bit entre Python y Java se verifica con
+`check_parity.py`. Destacado: el generador deliberadamente malo (`zx81_bad`) pasa la
+uniformidad y falla en independencia serial, lo que muestra que estas pruebas validan
+propiedades, no demuestran aleatoriedad.
+
+Instrucciones, resultados y el PDF del reporte de cada práctica en su
+[`unidad2/practicas/APE5/README.md`](unidad2/practicas/APE5/README.md) y
+[`unidad2/practicas/APE6/README.md`](unidad2/practicas/APE6/README.md).
